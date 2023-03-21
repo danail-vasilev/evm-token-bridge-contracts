@@ -3,10 +3,11 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./WERC.sol";
 
+// TODO: Create interface for the bridge; Add events in the interface
 /**
  * @title EVM ERC20 Token Bridge
  * @author Danail Vasilev
- * @notice This is a 2-way ERC20 token bridge. Used "lock-mint", "release-burn" approach.
+ * @notice This is a 2-way ERC20 token bridge. Used "lock-mint" "release-burn" pattern.
  */
 contract BridgeFactory is Ownable {
     // For n-way bridge we can use struct to store tokenAmount and source chainId. The struct should not contain
@@ -16,66 +17,66 @@ contract BridgeFactory is Ownable {
     mapping(address => mapping(address => uint256)) lockedTokens;
     mapping(address => mapping(address => uint256)) claimableTokens;
 
+    function getLockedTokensAmount(
+        address user,
+        address token
+    ) external view returns (uint256) {
+        return lockedTokens[user][token];
+    }
+
+    function getClaimableTokensAmount(
+        address user,
+        address token
+    ) external view returns (uint256) {
+        return claimableTokens[user][token];
+    }
+
     // TODO: Add history. We can store block numbers that have events, to avoid iteration over all blocks;
     // The graph can be used as well;
 
     // Permit token and transfer token should happen in a single transaction in order to reduce gas fees.
     // Bridge tax is collected here, from a single point.
-    // TODO: Add bridge tax requirement
-    function send(WERC tokenAddress, uint256 tokenAmount) external {
-        permitToken(tokenAddress, tokenAmount);
-        lockToken(tokenAddress, tokenAmount);
-    }
-
-    function permitToken(WERC tokenAddress, uint256 tokenAmount) internal {
+    // TODO: Make method payable; Add bridge tax requirement
+    function lockToken(WERC tokenAddress, uint256 tokenAmount) external {
+        /**
+         * TODO:
+         * 1) Can we approve the owner of the bridge instead of the bridge itself ?
+         * 2) Use permits instead of approve
+         * 3) Do we expect to have already approved amount ? Should we amend the currently approved amount or override it?
+         */
         // Approve already emits event, no need to do it here.
-        // TODO: Use permit instead of approve
-        // TODO: What if we have already approved amount ? Should we extend the currently approved amount or override it?
-        tokenAddress.approve(msg.sender, owner(), tokenAmount);
-    }
+        tokenAddress.approve(msg.sender, address(this), tokenAmount);
 
-    function lockToken(WERC tokenAddress, uint256 tokenAmount) internal {
-        // 1) Update bridge data
+        // 1) Access token and transfer token ownership
+        tokenAddress.transferFrom(msg.sender, address(this), tokenAmount);
+        // 2) Update bridge data
         // TODO: Use msg.sender from Context ?
-        lockedTokens[msg.sender][address(tokenAddress)] =
-            lockedTokens[msg.sender][address(tokenAddress)] +
-            tokenAmount;
-        // 2) Access token and transfer token ownership
-        tokenAddress.transferFrom(msg.sender, owner(), tokenAmount);
+        // TODO: Should we avoid shorthand because of gas efficiency ?
+        lockedTokens[msg.sender][address(tokenAddress)] += tokenAmount;
         // 3) Emit event
-        // TODO: Do we need Bridge specific event or the one from transferFrom is fine ?
     }
 
     // Offchain action dispatched by the backend
-    // TODO: Add signature, chainId ?
-    // TODO: What's better to pass tokenAddress or set it in the contract?
     function mintToken(
         WERC tokenAddress,
         uint256 tokenAmount,
         address sender
     ) external {
-        // TODO: Verify tokenAddress exists?
         // 1) Verify signature
-        // In order to mint the bridge has to be the owner of the token
-        // 2) Mint token, the owner is still the bridge
-        tokenAddress.mint(owner(), tokenAmount);
+        // 2) Mint token, the bridge needs a minting role;
+        // TODO: Add minter role to the bridge when deploying
+        tokenAddress.mint(address(this), tokenAmount);
         // 3) Update Bridge data
-        // TODO: Test the short hand +=
-        claimableTokens[sender][address(tokenAddress)] =
-            claimableTokens[sender][address(tokenAddress)] +
-            tokenAmount;
+        claimableTokens[sender][address(tokenAddress)] += tokenAmount;
         // 4) Emit event
     }
 
+    // User claim action
     function releaseToken(WERC tokenAddress, uint256 tokenAmount) external {
-        // 1) Verify signature
-        // 2) Release
-        // Change token amount ownership from bridge to user
-        tokenAddress.transferFrom(owner(), msg.sender, tokenAmount);
-        // Update bridge data
-        claimableTokens[msg.sender][address(tokenAddress)] =
-            claimableTokens[msg.sender][address(tokenAddress)] -
-            tokenAmount;
+        // 1) Change token amount ownership from bridge to user
+        tokenAddress.transfer(msg.sender, tokenAmount);
+        // 2) Update bridge data
+        claimableTokens[msg.sender][address(tokenAddress)] -= tokenAmount;
         // 3) Emit event
     }
 
@@ -88,12 +89,9 @@ contract BridgeFactory is Ownable {
         // 1) Verify signature
         // 2) Burn token
         tokenAddress.burn(tokenAmount);
-        // 2) Update bridge data
-        lockedTokens[sender][address(tokenAddress)] =
-            lockedTokens[sender][address(tokenAddress)] -
-            tokenAmount;
+        // 3) Update bridge data
+        lockedTokens[sender][address(tokenAddress)] -= tokenAmount;
         // Emit event
     }
-    // Events
 }
 // TODO: What If I lock-mint tokens but want to revert that ?
