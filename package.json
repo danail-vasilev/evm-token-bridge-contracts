@@ -1,5 +1,8 @@
 {
-  "name": "hardhat-project",
+  "name": "evm-erc-20-token-bridge",
+  "scripts": {
+    "relayer": "node node_modules/ts-node/dist/bin.js ./scripts/relayer.ts"
+  },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",

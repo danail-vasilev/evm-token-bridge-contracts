@@ -44,6 +44,10 @@ the same account for the first time.
 
 4. Run relayer
 
+```node
+npx hardhat relayer
+```
+
 5. Transfer token on network A (hardhat)
 
 5.1 Transfer token

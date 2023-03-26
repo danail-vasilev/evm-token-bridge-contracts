@@ -2,6 +2,7 @@ import { ethers, network } from "hardhat";
 import "dotenv/config";
 import Bridge from "../artifacts/contracts/BridgeFactory.sol/BridgeFactory.json";
 import WERC from "../artifacts/contracts/WERC.sol/WERC.json";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const GOERLI_LIBTOKEN_CONTRACT = process.env.GOERLI_LIBTOKEN_CONTRACT;
 const GOERLI_BOOKLIB_CONTRACT = process.env.GOERLI_BOOKLIB_CONTRACT;
@@ -22,15 +23,21 @@ const GANACHE_CHAIN_ID = Number(process.env.GANACHE_CHAIN_ID);
 
 export async function getBridgeData() {
   const [owner, user] = await ethers.getSigners();
+  return getBridgeDataWithSigners(owner, user, network.config.chainId);
+}
+
+export async function getBridgeDataWithSigners(
+  owner: SignerWithAddress,
+  user: SignerWithAddress,
+  chainId: number | string | undefined
+) {
   // Use provider from hardhat config
   // Both are the same
   const provider = owner.provider;
   //let provider = ethers.provider;
 
   // Contracts are already deployed to corresponding network. Based on the network use related contract address.
-  const contractAddresses: string[] = getContractAddressesFromChainId(
-    network.config.chainId
-  );
+  const contractAddresses: string[] = getContractAddressesFromChainId(chainId);
   const WERCTokenAddress = contractAddresses[0];
   const bridgeAddress = contractAddresses[1];
 
@@ -53,7 +60,7 @@ export async function getBridgeData() {
   return { owner: owner, user: user, token: WERCToken, bridge: bridge };
 }
 
-function getContractAddressesFromChainId(chainId: number | undefined) {
+function getContractAddressesFromChainId(chainId: number | string | undefined) {
   console.log(chainId);
   if (chainId == HARDHAT_CHAIN_ID) {
     // local network

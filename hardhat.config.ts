@@ -1,6 +1,7 @@
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "dotenv/config";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const OWNER_PRIVATE_KEY = process.env.OWNER_PRIVATE_KEY;
 const USER_PRIVATE_KEY = process.env.USER_PRIVATE_KEY;
@@ -19,6 +20,15 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const lazyImport = async (module: any) => {
   return await import(module);
 };
+
+task("relayer", "Runs relayer").setAction(
+  async (taskArgs: {}, hre: HardhatRuntimeEnvironment) => {
+    const { main } = await lazyImport("./scripts/relayer");
+    const networkA = "local";
+    const networkB = "ganache";
+    await main(hre, networkA, networkB);
+  }
+);
 
 task(
   "bridge-status",
