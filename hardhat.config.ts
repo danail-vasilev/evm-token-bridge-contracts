@@ -2,34 +2,45 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "dotenv/config";
 
+const OWNER_PRIVATE_KEY = process.env.OWNER_PRIVATE_KEY;
+const USER_PRIVATE_KEY = process.env.USER_PRIVATE_KEY;
+
+const GANACHE_URL = process.env.GANACHE_URL;
+const GANACHE_CHAIN_ID = Number(process.env.GANACHE_CHAIN_ID);
+const GANACHE_PRIVATE_KEY = process.env.GANACHE_PRIVATE_KEY;
+
+const HARDHAT_URL = process.env.HARDHAT_URL;
+const HARDHAT_CHAIN_ID = Number(process.env.HARDHAT_CHAIN_ID);
+const HARDHAT_PRIVATE_KEY = process.env.HARDHAT_PRIVATE_KEY;
+
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL;
-const SEPOLIA_CHAIN_ID = process.env.SEPOLIA_CHAIN_ID as unknown as number;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-const LOCAL_HOST_URL = process.env.LOCAL_HOST_URL;
-const LOCAL_HOST_CHAIN_ID = process.env
-  .LOCAL_HOST_CHAIN_ID as unknown as number;
-const LOCAL_HOST_PRIVATE_KEY = process.env.LOCAL_HOST_PRIVATE_KEY;
-const LOCAL_HOST_PRIVATE_KEY2 = process.env.LOCAL_HOST_PRIVATE_KEY2;
-
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 const lazyImport = async (module: any) => {
   return await import(module);
 };
 
-/**
- * Commands:
- * npx hardhat deploy-token --network local
- * npx hardhat deploy-bridge --network local
- * npx hardhat interact --network local
- */
+task(
+  "bridge-status",
+  "Logs bridge state - token amount and allowance for user, owner and bridge; Just pass network and config is loaded from hardhat"
+).setAction(async () => {
+  const { main } = await lazyImport("./scripts/bridge-status");
+  await main();
+});
 
 task(
-  "interact",
-  "Interact with token and bridge contracts; Just pass network and config is loaded from hardhat"
+  "transfer-ether",
+  "Tranfers ether from local network account to owner and user accounts; Just pass network and config is loaded from hardhat"
 ).setAction(async () => {
-  const { main } = await lazyImport("./scripts/interact");
+  const { main } = await lazyImport("./scripts/transfer-ether");
+  await main();
+});
+
+task(
+  "deploy-token",
+  "Deploys a token contract; Just pass network and config is loaded from hardhat"
+).setAction(async () => {
+  const { main } = await lazyImport("./scripts/deploy-token");
   await main();
 });
 
@@ -42,10 +53,18 @@ task(
 });
 
 task(
-  "deploy-token",
-  "Deploys a token contract; Just pass network and config is loaded from hardhat"
+  "transfer-token",
+  "Transfer the token to bridge; Just pass network and config is loaded from hardhat"
 ).setAction(async () => {
-  const { main } = await lazyImport("./scripts/deploy-token");
+  const { main } = await lazyImport("./scripts/transfer-token");
+  await main();
+});
+
+task(
+  "claim-token",
+  "Claim the token from the bridge; Just pass network and config is loaded from hardhat"
+).setAction(async () => {
+  const { main } = await lazyImport("./scripts/claim-token");
   await main();
 });
 
@@ -63,13 +82,18 @@ const config: HardhatUserConfig = {
   networks: {
     sepolia: {
       url: SEPOLIA_RPC_URL,
-      accounts: [PRIVATE_KEY!],
+      accounts: [OWNER_PRIVATE_KEY!],
       chainId: 11155111,
     },
     local: {
-      url: LOCAL_HOST_URL,
-      accounts: [LOCAL_HOST_PRIVATE_KEY!, LOCAL_HOST_PRIVATE_KEY2!],
-      chainId: 31337,
+      url: HARDHAT_URL,
+      accounts: [OWNER_PRIVATE_KEY!, USER_PRIVATE_KEY!, HARDHAT_PRIVATE_KEY!],
+      chainId: HARDHAT_CHAIN_ID,
+    },
+    ganache: {
+      url: GANACHE_URL,
+      accounts: [OWNER_PRIVATE_KEY!, USER_PRIVATE_KEY!, GANACHE_PRIVATE_KEY!],
+      chainId: GANACHE_CHAIN_ID,
     },
   },
   etherscan: {
