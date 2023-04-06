@@ -31,9 +31,14 @@ async function logBridgeState(
     .connect(user)
     .getLockedTokensAmount(user.address, token.address);
 
+  const userClaimableTokensBridge = await bridge
+    .connect(user)
+    .getClaimableTokensAmount(user.address, token.address);
+
   console.log(
     `User: ${user.address}\nBridge: ${bridge.address}\nToken: ${token.address}\n` +
       `User to bridge token allowance: ${userToBridgeTokenAllowance}\n` +
-      `User locked tokens in bridge: ${userLockedTokensBridge}\n`
+      `User locked tokens in bridge: ${userLockedTokensBridge}\n` +
+      `User claimable tokens in bridge: ${userClaimableTokensBridge}\n`
   );
 }

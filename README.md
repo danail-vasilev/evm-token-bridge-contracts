@@ -1,6 +1,46 @@
-# EVM ERC20 Token Bridge
+# EVM ERC-20 Token Bridge
 
-Local Networks Workflow
+## Introduction
+
+This is a sample EVM ERC-20 Token Bridge project. It contains:
+
+- Two smart contracts - one for the ERC20 token and the other for the bridge itself.
+- Simple relayer that connects bridges from both network (i.e., listen and emits events).
+- Scripts for interaction with the bridge
+
+## Test Networks Workflow
+
+1. Feed owner and user accounts with ethers on both networks.
+
+2. Deploy token and bridge contracts on both test networks (e.g., sepolia and goerli)
+
+2.1 Network A (sepolia):
+
+```node
+npx hardhat deploy-token --network sepolia
+npx hardhat deploy-bridge --network sepolia
+```
+
+2.2 Network B (goerli):
+
+```node
+npx hardhat deploy-token --network goerli
+npx hardhat deploy-bridge --network goerli
+```
+
+3. Run relayer
+
+```node
+npx hardhat relayer
+```
+
+4. Interact with bridge:
+
+4.1 Script interaction - See point 5 and 6 from 'Local Networks Workflow' section.
+
+4.2 Frontend interact - See [EVM ERC-20 Token Bridge App](https://github.com/danail-vasilev/evm-token-bridge-frontend) for details
+
+## Local Networks Workflow (Setup, deploy and interact)
 
 The following provides steps for deploying and interacting with a 2 way ERC-20 Token Bridge
 
@@ -45,7 +85,7 @@ the same account for the first time.
 4. Run relayer
 
 ```node
-npx hardhat relayer
+npx hardhat relayer-local
 ```
 
 5. Transfer token on network A (hardhat)

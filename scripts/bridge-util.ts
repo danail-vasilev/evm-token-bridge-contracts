@@ -4,16 +4,14 @@ import Bridge from "../artifacts/contracts/BridgeFactory.sol/BridgeFactory.json"
 import WERC from "../artifacts/contracts/WERC.sol/WERC.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-const GOERLI_LIBTOKEN_CONTRACT = process.env.GOERLI_LIBTOKEN_CONTRACT;
-const GOERLI_BOOKLIB_CONTRACT = process.env.GOERLI_BOOKLIB_CONTRACT;
-
-const SEPOLIA_LIBTOKEN_CONTRACT = process.env.SEPOLIA_LIBTOKEN_CONTRACT;
-const SEPOLIA_BOOKLIB_CONTRACT = process.env.SEPOLIA_BOOKLIB_CONTRACT;
-
 const HARDHAT_WERC_TOKEN_CONTRACT = process.env.HARDHAT_WERC_TOKEN_CONTRACT;
 const HARDHAT_BRIDGE_CONTRACT = process.env.HARDHAT_BRIDGE_CONTRACT;
 const GANACHE_WERC_TOKEN_CONTRACT = process.env.GANACHE_WERC_TOKEN_CONTRACT;
 const GANACHE_BRIDGE_CONTRACT = process.env.GANACHE_BRIDGE_CONTRACT;
+const SEPOLIA_WERC_TOKEN_CONTRACT = process.env.SEPOLIA_WERC_TOKEN_CONTRACT;
+const SEPOLIA_BRIDGE_CONTRACT = process.env.SEPOLIA_BRIDGE_CONTRACT;
+const GOERLI_WERC_TOKEN_CONTRACT = process.env.GOERLI_WERC_TOKEN_CONTRACT;
+const GOERLI_BRIDGE_CONTRACT = process.env.GOERLI_BRIDGE_CONTRACT;
 
 const GOERLI_CHAIN_ID = Number(process.env.GOERLI_CHAIN_ID);
 const SEPOLIA_CHAIN_ID = Number(process.env.SEPOLIA_CHAIN_ID);
@@ -70,9 +68,10 @@ function getContractAddressesFromChainId(chainId: number | string | undefined) {
     return [GANACHE_WERC_TOKEN_CONTRACT, GANACHE_BRIDGE_CONTRACT];
   } else if (chainId == GOERLI_CHAIN_ID) {
     // goerli network
-    return [GOERLI_LIBTOKEN_CONTRACT, GOERLI_BOOKLIB_CONTRACT];
+    return [GOERLI_WERC_TOKEN_CONTRACT, GOERLI_BRIDGE_CONTRACT];
   } else if (chainId == SEPOLIA_CHAIN_ID) {
-    return [SEPOLIA_LIBTOKEN_CONTRACT, SEPOLIA_BOOKLIB_CONTRACT];
+    // sepolia network
+    return [SEPOLIA_WERC_TOKEN_CONTRACT, SEPOLIA_BRIDGE_CONTRACT];
   } else {
     console.warn("No contracts");
     return;
